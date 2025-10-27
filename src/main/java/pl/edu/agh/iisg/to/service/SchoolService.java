@@ -6,6 +6,7 @@ import pl.edu.agh.iisg.to.dao.StudentDao;
 import pl.edu.agh.iisg.to.model.Course;
 import pl.edu.agh.iisg.to.model.Grade;
 import pl.edu.agh.iisg.to.model.Student;
+import pl.edu.agh.iisg.to.repository.StudentRepository;
 import pl.edu.agh.iisg.to.session.TransactionService;
 
 import java.util.*;
@@ -20,11 +21,14 @@ public class SchoolService {
 
     private final GradeDao gradeDao;
 
+    private final StudentRepository studentRepository;
+
     public SchoolService(TransactionService transactionService, StudentDao studentDao, CourseDao courseDao, GradeDao gradeDao) {
         this.transactionService = transactionService;
         this.studentDao = studentDao;
         this.courseDao = courseDao;
         this.gradeDao = gradeDao;
+        this.studentRepository = new StudentRepository(studentDao, transactionService);
     }
 
     public boolean enrollStudent(final Course course, final Student student) {
@@ -40,25 +44,28 @@ public class SchoolService {
     }
 
     public boolean removeStudent(int indexNumber) {
-        // TODO - implement
-        Optional<Student> optionalStudent = this.studentDao.findByIndexNumber(indexNumber);
-        if(optionalStudent.isEmpty()) {
-            return false;
-        }
-        Student student = optionalStudent.get();
-        Set<Course> courseSet = student.courseSet();
-        return transactionService.doAsTransaction(() -> {
-            for (Course course : courseSet) {
-                if (!course.studentSet().contains(student)) {
-                    return false;
-                }
-                course.studentSet().remove(student);
-            }
-            student.courseSet().clear();
-            this.studentDao.remove(student);
-            return true;
-        }).orElse(false);
+        studentRepository.remove(studentDao.findByIndexNumber(indexNumber).get());
+        return true;
     }
+//        // TODO - implement
+//        Optional<Student> optionalStudent = this.studentDao.findByIndexNumber(indexNumber);
+//        if(optionalStudent.isEmpty()) {
+//            return false;
+//        }
+//        Student student = optionalStudent.get();
+//        Set<Course> courseSet = student.courseSet();
+//        return transactionService.doAsTransaction(() -> {
+//            for (Course course : courseSet) {
+//                if (!course.studentSet().contains(student)) {
+//                    return false;
+//                }
+//                course.studentSet().remove(student);
+//            }
+//            student.courseSet().clear();
+//            this.studentDao.remove(student);
+//            return true;
+//        }).orElse(false);
+//    }
 
     public boolean gradeStudent(final Student student, final Course course, final float gradeValue) {
         // TODO - implement
