@@ -32,9 +32,8 @@ public class SchoolService {
     }
 
     public boolean enrollStudent(final Course course, final Student student) {
-        // TODO - implement
         return transactionService.doAsTransaction(() -> {
-            if(course.studentSet().contains(student)) {
+            if (course.studentSet().contains(student)) {
                 return false;
             }
             course.studentSet().add(student);
@@ -68,16 +67,15 @@ public class SchoolService {
 //    }
 
     public boolean gradeStudent(final Student student, final Course course, final float gradeValue) {
-        // TODO - implement
-        if(student == null || course == null){
+        if (student == null || course == null) {
             return false;
         }
         return transactionService.doAsTransaction(() -> {
-                Grade grade = new Grade(student, course, gradeValue);
-                student.gradeSet().add(grade);
-                course.gradeSet().add(grade);
-                this.gradeDao.save(grade);
-                return true;
+            Grade grade = new Grade(student, course, gradeValue);
+            student.gradeSet().add(grade);
+            course.gradeSet().add(grade);
+            gradeDao.save(grade);
+            return true;
         }).orElse(false);
     }
 
@@ -89,8 +87,7 @@ public class SchoolService {
             return map;
         }
 
-        Course course = optionalCourse.get();
-        List<Student> studentList = studentDao.findAll();
+        List<Student> studentList = studentRepository.findAll();
 
         for (Student student : studentList) {
             List<Float> grades = student.gradeSet().stream().map(Grade::grade).toList();
